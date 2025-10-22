@@ -1,0 +1,77 @@
+@import "swiper/css";
+@import "swiper/css/navigation";
+@import "swiper/css/pagination";
+@import 'swiper/css/grid';
+
+
+@import "slick-carousel/slick/slick.css";
+@import "slick-carousel/slick/slick-theme.css";
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+.swiper-button-next,
+.swiper-button-prev {
+  width: 40px !important;     
+  height: 40px !important;    
+  border-radius: 50% !important; 
+  background-color: rgba(121, 36, 206, 0.2); 
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  background-color: rgba(121, 36, 206, 0.4);
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 18px !important;
+  font-weight: bold;
+  color: #FFFFFF; 
+}
+
+.mySwiper {
+  padding-left: 2rem !important;  
+  padding-right: 2rem !important;  
+  padding-bottom: 2rem !important;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; 
+}
+
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+
