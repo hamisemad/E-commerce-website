@@ -8,6 +8,8 @@ import YouMayLike from "./YouMayLike";
 import { useCart } from "./Context/CartContext";
 import { useWishList } from "./Context/WishListContext";
 import { ClipLoader } from "react-spinners";
+import toast from "react-hot-toast";
+
 
 
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -117,9 +119,14 @@ export default function ProductDetails() {
   };
 
 
-
   const handleBuyNowOrder = () => {
     if (!product?._id || isBuyingNow) return;
+    const token = localStorage.getItem("userToken");
+
+    if (!token) {
+      toast.error("You need to login first");
+      return;
+    }
     setIsBuyingNow(true);
     setTimeout(() => {
       navigate("/checkout", {
@@ -127,10 +134,10 @@ export default function ProductDetails() {
           productId: product._id,
         },
       });
-
     }, 500);
-
   };
+
+
 
 
 
