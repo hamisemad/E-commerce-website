@@ -73,7 +73,7 @@ function ProductCard({ product }) {
                 <Heart className="w-5 h-5 text-purple-700" />
             </div>
             <div
-                className="absolute sm:bottom-3 bottom-28 md:bottom-11 lg:bottom-3 right-3 bg-slate-200 p-2 rounded-full shadow-md hover:bg-slate-100 transition cursor-pointer"
+                className="absolute sm:bottom-3 bottom-28 md:bottom-9 lg:bottom-3 right-3 bg-slate-200 p-2 rounded-full shadow-md hover:bg-slate-100 transition cursor-pointer"
                 aria-label="Add to cart"
             >
                 <ShoppingCart className="w-5 h-5 text-purple-700" />
