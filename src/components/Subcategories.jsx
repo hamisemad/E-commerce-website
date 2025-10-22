@@ -9,6 +9,8 @@ import "react-loading-skeleton/dist/skeleton.css";
 import { Helmet } from "react-helmet-async";
 import { useCart } from "./Context/CartContext";
 import { useWishList } from "./Context/WishListContext";
+import { ClipLoader } from "react-spinners";
+
 
 import bannerWoman from "../assets/images/woman's banner.jpg";
 import bannerMan from "../assets/images/men's banner.jpg";
@@ -104,8 +106,6 @@ export default function Subcategories() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-
-
     useEffect(() => {
         if (!categoryId) return;
         let mounted = true;
@@ -165,11 +165,21 @@ export default function Subcategories() {
     if (error) return <div className="p-6 text-center text-red-600">{error}</div>;
 
     const categoryHasBanner = category && categoryBanners[category.name];
+    const isSupportedCategoryType = category && categoryBanners[category.name];
     const showSkeletonBanner = loading && categoryHasBanner;
     const isComingSoonCategory =
-        !loading && category && (!categoryBanners[category.name] || products.length === 0);
+        !loading && category && (!isSupportedCategoryType || products.length === 0);
 
     if (loading) {
+        if (category && !isSupportedCategoryType) {
+            return (
+                <div className="py-20 max-w-7xl mx-auto text-center">
+                    <ClipLoader color="#8b5cf6" size={80} />
+
+                </div>
+            );
+        }
+
         return (
             <section className="p-6 max-w-7xl mx-auto">
                 {showSkeletonBanner && (
