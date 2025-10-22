@@ -90,7 +90,7 @@ export default function Navbar() {
                   <User size={22} /><span>Hello, {user.name || "User"}</span>
                   {userMenu && (
                     <div className="absolute right-0 mt-20 bg-white text-gray-800 rounded-lg shadow-xl w-36 py-1 z-50">
-                      <button onClick={() => { logout(); setUserMenu(false); }} className="flex items-center w-full px-4 py-2 text-red-600 hover:bg-gray-100 text-sm font-medium">
+                      <button onClick={() => { logout();  navigate("/"); setUserMenu(false); }} className="flex items-center w-full px-4 py-2 text-red-600 hover:bg-gray-100 text-sm font-medium">
                         <LogOut className="w-4 h-4 mr-2" />Logout
                       </button>
                     </div>
