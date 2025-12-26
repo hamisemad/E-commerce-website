@@ -11,6 +11,8 @@ export function useCart() {
 export default function CartProvider({ children }) {
     const [cart, setCart] = useState(null);
     const [isCartSideBarOpen, setIsCartSideBarOpen] = useState(false);
+    const [isBuyNowFlow, setIsBuyNowFlow] = useState(false);
+
 
     const baseUrl = "https://ecommerce.routemisr.com/api/v1";
 
@@ -31,26 +33,28 @@ export default function CartProvider({ children }) {
     const CloseCartSideBar = () => setIsCartSideBarOpen(false);
 
 
-    async function addProductToCart(productId) {
+    async function addProductToCart(productId, options = {}) {
+        const { silent = false } = options;
+
         try {
             const { data } = await axios.post(
                 `${baseUrl}/cart`,
                 { productId },
                 { headers: getHeaders() }
             );
+
             await getProductsCart();
 
-            toast.success(data?.message || "Product added to cart");
-            OpenCartSideBar();
-
+            if (!silent) {
+                toast.success(data?.message || "Product added to cart");
+                OpenCartSideBar();
+            }
         } catch (err) {
             console.error("Error adding product:", err);
-            if (err.response && err.response.status === 401) {
-                setCart(null);
-                toast.error("You need to login first");
-            } else {
+            if (!silent) {
                 toast.error("Failed to add product");
             }
+            throw err;
         }
     }
 
@@ -115,14 +119,18 @@ export default function CartProvider({ children }) {
     }
 
 
-    async function clearCart() {
+    async function clearCart(showToast = true) {
         try {
             await axios.delete(
                 `${baseUrl}/cart`,
                 { headers: getHeaders() }
             );
+
             setCart(getEmptyCartState());
-            toast.success("Cart cleared successfully");
+
+            if (showToast) {
+                toast.success("Cart cleared successfully");
+            }
         } catch (err) {
             console.error("Error clearing cart:", err);
             toast.error("Failed to clear cart");
@@ -130,7 +138,7 @@ export default function CartProvider({ children }) {
     }
 
     const items = cart?.data?.products || [];
-    const cartCount = items.length;
+    const cartCount = isBuyNowFlow ? 0 : items.length;
 
 
     useEffect(() => {
@@ -150,6 +158,8 @@ export default function CartProvider({ children }) {
                 isCartSideBarOpen,
                 OpenCartSideBar,
                 CloseCartSideBar,
+                isBuyNowFlow,
+                setIsBuyNowFlow,
             }}
         >
             {children}

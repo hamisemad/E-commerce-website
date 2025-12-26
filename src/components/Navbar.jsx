@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Search, Heart, ShoppingCart, User, Menu, X, LogOut, Home } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -19,6 +19,8 @@ export default function Navbar() {
   const [userMenu, setUserMenu] = useState(false);
   const [mobileUserMenu, setMobileUserMenu] = useState(false);
   const navigate = useNavigate();
+  const searchRef = useRef(null);
+  const userMenuRef = useRef(null);
 
   useEffect(() => {
     axios.get("https://ecommerce.routemisr.com/api/v1/categories")
@@ -32,6 +34,35 @@ export default function Navbar() {
   useEffect(() => {
     setResults(query.trim() ? products.filter(p => p.title.toLowerCase().includes(query.toLowerCase())) : []);
   }, [query, products]);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setIsSearchOpen(false);
+        setQuery("");
+        setResults([]);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setUserMenu(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
 
   const handleSearch = e => {
     e.preventDefault();
@@ -61,7 +92,8 @@ export default function Navbar() {
             <button onClick={() => setIsSearchOpen(!isSearchOpen)} className="lg:hidden md:hidden p-1 rounded-full hover:bg-white/10"><Search size={24} /></button>
           </div>
 
-          <div className="hidden md:block flex-1 max-w-xl mx-4 relative">
+          <div ref={searchRef}
+            className="hidden md:block flex-1 max-w-xl mx-4 relative">
             <form onSubmit={handleSearch} className="flex items-center bg-white rounded-full px-3 py-1.5 shadow-lg">
               <input className="flex-grow px-2 text-black bg-transparent focus:outline-none" placeholder="Search for Products..." value={query} onChange={e => setQuery(e.target.value)} />
               <button type="submit"><Search className="text-gray-600 hover:text-gray-800 " size={20} /></button>
@@ -71,7 +103,7 @@ export default function Navbar() {
                 {results.slice(0, 5).map(p => (
                   <Link key={p._id} to={`/product/${p._id}`} onClick={() => { setQuery(""); setResults([]); }} className="flex items-center p-3 hover:bg-gray-100 rounded-lg border-b">
                     <img src={p.imageCover} alt={p.title} className="w-10 h-10 object-cover rounded-md mr-3" onError={e => e.target.src = "https://placehold.co/40x40/cccccc/333333?text=N/A"} />
-                    <div className="truncate text-sm font-medium">{p.title}</div>
+                    <div className="truncate text-sm font-medium text-gray-900">{p.title}</div>
                   </Link>
                 ))}
               </div>
@@ -79,18 +111,18 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-4 sm:gap-6 ">
-            <div className="cursor-pointer bg-inherit p-1 rounded-full hover:bg-white/10 transition-colors select-none"><Link to="/wishlist" className="relative hidden sm:block"><Heart size={24} className="text-white" />{WishListCount > 0 && <span className="absolute bg-yellow-500 text-purple-950 text-xs font-bold rounded-full w-4 h-4 -top-1 -right-2 flex items-center justify-center border-2 border-white">{WishListCount}</span>}</Link></div>
-            <div className="cursor-pointer bg-inherit p-1 rounded-full hover:bg-white/10 transition-colors select-none"> <Link to="/cart" className="relative hidden sm:block"><ShoppingCart size={24} className="text-white" />{cartCount > 0 && <span className="absolute bg-yellow-500 text-purple-950 text-xs font-bold rounded-full w-4 h-4 -top-1 -right-2 flex items-center justify-center border-2 border-white">{cartCount}</span>}</Link></div>
+            <div className="cursor-pointer bg-inherit p-1 rounded-full hover:bg-white/10 transition-colors select-none"><Link to="/wishlist" className="relative hidden sm:block"><Heart size={24} className="text-white" />{user && WishListCount > 0 && <span className="absolute bg-yellow-500 text-purple-950 text-xs font-bold rounded-full w-4 h-4 -top-1 -right-2 flex items-center justify-center border-2 border-white">{WishListCount}</span>}</Link></div>
+            <div className="cursor-pointer bg-inherit p-1 rounded-full hover:bg-white/10 transition-colors select-none"> <Link to="/cart" className="relative hidden sm:block"><ShoppingCart size={24} className="text-white" />{user && cartCount > 0 && <span className="absolute bg-yellow-500 text-purple-950 text-xs font-bold rounded-full w-4 h-4 -top-1 -right-2 flex items-center justify-center border-2 border-white">{cartCount}</span>}</Link></div>
 
             <div className="relative hidden sm:block cursor-pointer bg-inherit p-1 rounded-full hover:bg-white/10 transition-colors select-none">
               {!user ? (
                 <Link to="/register" className="flex items-center gap-2"><User size={24} className="text-white" /></Link>
               ) : (
-                <div onClick={() => setUserMenu(!userMenu)} className="flex items-center gap-2 cursor-pointer">
+                <div ref={userMenuRef} onClick={() => setUserMenu(!userMenu)} className="flex items-center gap-2 cursor-pointer">
                   <User size={22} /><span>Hello, {user.name || "User"}</span>
                   {userMenu && (
                     <div className="absolute right-0 mt-20 bg-white text-gray-800 rounded-lg shadow-xl w-36 py-1 z-50">
-                      <button onClick={() => { logout();  navigate("/"); setUserMenu(false); }} className="flex items-center w-full px-4 py-2 text-red-600 hover:bg-gray-100 text-sm font-medium">
+                      <button onClick={() => { logout(); navigate("/"); setUserMenu(false); }} className="flex items-center w-full px-4 py-2 text-red-600 hover:bg-gray-100 text-sm font-medium">
                         <LogOut className="w-4 h-4 mr-2" />Logout
                       </button>
                     </div>
@@ -102,17 +134,17 @@ export default function Navbar() {
         </div>
 
         {isSearchOpen && (
-          <div className="md:hidden w-full px-4 py-2 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-900 shadow-md relative">
+          <div ref={searchRef} className="md:hidden w-full px-4 py-2 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-900 shadow-md relative">
             <form onSubmit={handleSearch} className="flex items-center bg-white rounded-full px-3 py-1.5 shadow-inner">
               <input className="flex-grow px-2 text-black bg-transparent focus:outline-none" placeholder="Search..." value={query} onChange={e => setQuery(e.target.value)} />
               <button type="submit"><Search size={20} /></button>
             </form>
             {results.length > 0 && (
-              <div className="absolute top-full left-4 right-4 mt-2 bg-white text-gray-800 rounded-xl shadow-2xl max-h-60 overflow-y-auto p-2 z-50">
+              <div className="absolute top-full left-4 right-4 mt-2 bg-white text-gray-800 rounded-xl shadow-2xl max-h-60 overflow-y-auto  p-2 z-50" >
                 {results.slice(0, 5).map(p => (
                   <Link key={p._id} to={`/product/${p._id}`} onClick={() => { setQuery(""); setResults([]); setIsSearchOpen(false); }} className="flex items-center p-3 hover:bg-gray-100 rounded-lg border-b">
                     <img src={p.imageCover} alt={p.title} className="w-8 h-8 object-cover rounded-md mr-2" />
-                    <div className="truncate text-sm font-medium">{p.title}</div>
+                    <div className="truncate text-sm font-medium text-gray-900">{p.title}</div>
                   </Link>
                 ))}
               </div>
@@ -143,8 +175,8 @@ export default function Navbar() {
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-2xl sm:hidden">
         <div className="flex justify-around items-center h-16">
           <NavButton to="/" icon={Home} label="Home" />
-          <NavButton to="/wishlist" icon={Heart} label="Wishlist" count={WishListCount} />
-          <NavButton to="/cart" icon={ShoppingCart} label="Cart" count={cartCount} />
+          <NavButton to="/wishlist" icon={Heart} label="Wishlist" count={user ? WishListCount : 0} />
+          <NavButton to="/cart" icon={ShoppingCart} label="Cart" count={user ? cartCount : 0} />
           {!user ? (
             <NavButton to="/register" icon={User} label="Sign In" />
           ) : (

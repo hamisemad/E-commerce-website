@@ -23,10 +23,11 @@ const FormInput = ({ name, placeholder, formik }) => (
 
 const PaymentOption = ({ value, label, currentMethod, updateMethod }) => (
   <label
-    className={`flex items-center gap-3 cursor-pointer p-3 border rounded-lg transition ${currentMethod === value
-      ? "border-purple-500 bg-purple-50"
-      : "border-gray-300"
-      }`}
+    className={`flex items-center gap-3 cursor-pointer p-3 border rounded-lg transition ${
+      currentMethod === value
+        ? "border-purple-500 bg-purple-50"
+        : "border-gray-300"
+    }`}
   >
     <input
       type="radio"
@@ -41,41 +42,21 @@ const PaymentOption = ({ value, label, currentMethod, updateMethod }) => (
 
 const CardInputs = () => (
   <div className="mt-4 space-y-3 p-4 border rounded-lg bg-gray-50">
-    <h4 className="font-medium text-gray-700">Card Details (Mock UI)</h4>
-    <input
-      type="text"
-      placeholder="Card Number"
-      className="w-full p-2 border rounded-lg"
-      disabled
-    />
+    <h4 className="font-medium text-gray-700">Card Details (Stripe)</h4>
+    <input disabled placeholder="Card Number" className="w-full p-2 border rounded-lg" />
     <div className="flex gap-2">
-      <input
-        type="text"
-        placeholder="MM/YY"
-        className="w-1/2 p-2 border rounded-lg"
-        disabled
-      />
-      <input
-        type="text"
-        placeholder="CVV"
-        className="w-1/2 p-2 border rounded-lg"
-        disabled
-      />
+      <input disabled placeholder="MM/YY" className="w-1/2 p-2 border rounded-lg" />
+      <input disabled placeholder="CVV" className="w-1/2 p-2 border rounded-lg" />
     </div>
-    <input
-      type="text"
-      placeholder="Card Holder Name"
-      className="w-full p-2 border rounded-lg"
-      disabled
-    />
+    <input disabled placeholder="Card Holder Name" className="w-full p-2 border rounded-lg" />
   </div>
 );
+
+
 export default function CheckOutPage() {
   const {
     cart,
     addresses,
-    singleProduct,
-    productId,
     subtotal,
     shippingFee,
     total,
@@ -83,7 +64,6 @@ export default function CheckOutPage() {
     selectedAddress,
     isOrderLoading,
     addressLoading,
-    singleProductLoading,
     formik,
     setPaymentMethod,
     setSelectedAddress,
@@ -91,7 +71,7 @@ export default function CheckOutPage() {
     handleOrderSubmission,
   } = useCheckOutLogic();
 
-  if ((!productId && !cart) || (productId && singleProductLoading)) {
+  if (!cart) {
     return (
       <div className="flex justify-center items-center h-screen">
         <ClipLoader color="#6b46c1" size={80} />
@@ -99,134 +79,99 @@ export default function CheckOutPage() {
     );
   }
 
+  const isOrderDisabled =
+    isOrderLoading ||
+    !cart?.data?.products?.length ||
+    !selectedAddress;
+
   const AddressCard = ({ address }) => (
     <div className="flex items-start">
       <label
-        className={`flex-1 flex items-center border p-3 rounded-l-lg cursor-pointer transition ${selectedAddress === address._id
-          ? "border-blue-500 bg-blue-50"
-          : "border-gray-300"
-          }`}
+        className={`flex-1 flex items-center border p-3 rounded-l-lg cursor-pointer ${
+          selectedAddress === address._id
+            ? "border-blue-500 bg-blue-50"
+            : "border-gray-300"
+        }`}
       >
         <input
           type="radio"
-          name="address"
-          value={address._id}
           checked={selectedAddress === address._id}
           onChange={() => setSelectedAddress(address._id)}
-          className="mr-3 w-4 h-4 text-blue-600"
+          className="mr-3"
         />
         <div>
-          <span className="font-medium">{address.name}</span>
-          <div className="text-sm text-gray-600">
+          <p className="font-medium">{address.name}</p>
+          <p className="text-sm text-gray-600">
             {address.details}, {address.city}
-          </div>
+          </p>
         </div>
       </label>
       <button
         onClick={() => removeAddress(address._id)}
         disabled={addressLoading}
-        className="p-3 border border-gray-300 rounded-r-lg bg-red-50 hover:bg-red-100 text-red-600 disabled:opacity-50 transition translate-y-6"
-        title="Remove Address"
+        className="p-3 border rounded-r-lg bg-red-50 text-red-600"
       >
-        <Trash2 className="w-5 h-5" />
+        <Trash2 size={18} />
       </button>
     </div>
   );
-
-  const isOrderDisabled =
-    isOrderLoading ||
-    (!productId && !cart?.data?.products?.length) ||
-    (productId && !singleProduct);
 
   return (
     <>
       <Helmet>
         <title>Checkout | SuperKart</title>
-        <meta
-          name="description"
-          content="Review your order details and complete your purchase securely at SuperKart."
-        />
-        <meta property="og:title" content="Checkout - SuperKart" />
-        <meta
-          property="og:description"
-          content="Complete your order and enjoy fast, reliable delivery with SuperKart."
-        />
       </Helmet>
 
-      <div className="bg-gray-50 min-h-screen py-10 px-6 font-sans">
+      <div className="bg-gray-50 min-h-screen py-10 px-6">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-white shadow-xl rounded-2xl p-6 order-1 self-start">
-            <h2 className="text-2xl font-bold mb-4 border-b pb-3 text-gray-800">
+
+          {/* -------------------- ORDER SUMMARY -------------------- */}
+          <div className="bg-white p-6 rounded-2xl shadow">
+            <h2 className="text-2xl font-bold mb-4 border-b pb-3">
               Order Summary
             </h2>
 
-            {/* Conditional rendering for products/cart */}
-            {productId ? (
-              singleProduct ? (
-                <div
-                  key={singleProduct.id}
-                  className="flex items-center justify-between border-b py-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={singleProduct.imageCover}
-                      alt={singleProduct.title}
-                      className="w-14 h-14 object-contain rounded-md border"
-                    />
-                    <div>
-                      <p className="font-medium text-gray-800">
-                        {singleProduct.title.slice(0, 30)}...
-                      </p>
-                      <p className="text-sm text-gray-500">Qty: 1 </p>
-                    </div>
+            {cart.data.products.map((item) => (
+              <div
+                key={item._id}
+                className="flex justify-between items-center border-b py-3"
+              >
+                <div className="flex items-center gap-3">
+                  <img
+                    src={item.product.imageCover}
+                    alt={item.product.title}
+                    className="w-14 h-14 object-contain border rounded"
+                  />
+                  <div>
+                    <p className="font-medium">
+                      {item.product.title.slice(0, 30)}...
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Qty: {item.count}
+                    </p>
                   </div>
-                  <p className="font-semibold text-gray-800">
-                    {singleProduct.price} EGP
-                  </p>
                 </div>
-              ) : (
-                <ClipLoader color="#6b46c1" size={80} />
-              )
-            ) : cart?.data?.products?.length ? (
-              cart.data.products.map((item) => (
-                <div
-                  key={item._id}
-                  className="flex items-center justify-between border-b py-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={item.product.imageCover}
-                      alt={item.product.title}
-                      className="w-14 h-14 object-contain rounded-md border"
-                    />
-                    <div>
-                      <p className="font-medium text-gray-800">
-                        {item.product.title.slice(0, 30)}...
-                      </p>
-                      <p className="text-sm text-gray-500">Qty: {item.count}</p>
-                    </div>
-                  </div>
-                  <p className="font-semibold text-gray-800">{item.price} EGP</p>
-                </div>
-              ))
-            ) : null}
+                <p className="font-semibold">{item.price} EGP</p>
+              </div>
+            ))}
 
-            <div className="flex justify-between font-semibold mt-4 text-lg">
-              <span>Subtotal:</span>
+            <div className="flex justify-between mt-4">
+              <span>Subtotal</span>
               <span>{subtotal.toFixed(2)} EGP</span>
             </div>
-            <div className="flex justify-between mt-2 text-lg text-gray-700">
-              <span>Shipping Fee:</span>
+            <div className="flex justify-between mt-2">
+              <span>Shipping</span>
               <span>{shippingFee.toFixed(2)} EGP</span>
             </div>
-            <div className="flex justify-between font-bold mt-4 text-xl border-t pt-3">
-              <span>Total:</span>
+            <div className="flex justify-between mt-4 font-bold text-lg border-t pt-3">
+              <span>Total</span>
               <span>{total.toFixed(2)} EGP</span>
             </div>
           </div>
 
-          <div className="bg-white shadow-xl rounded-2xl p-6 order-2">
-            <h2 className="text-xl font-bold mb-4 border-b pb-3 text-gray-800">
+          {/* -------------------- ADDRESS & PAYMENT -------------------- */}
+          <div className="bg-white p-6 rounded-2xl shadow">
+            <h2 className="text-xl font-bold mb-4 border-b pb-3">
               Delivery Address
             </h2>
 
@@ -236,73 +181,52 @@ export default function CheckOutPage() {
                   <AddressCard key={address._id} address={address} />
                 ))
               ) : (
-                <p className="text-gray-500">
-                  No saved addresses yet. Please enter one below.
-                </p>
+                <p className="text-gray-500">No saved addresses yet</p>
               )}
             </div>
 
-            {/* New Address Form */}
             <form
               onSubmit={formik.handleSubmit}
-              className="space-y-3 mb-6 p-4 border rounded-xl bg-gray-50 mt-4"
+              className="space-y-3 border p-4 rounded-xl bg-gray-50"
             >
-              <h3 className="font-semibold text-lg border-b pb-2 text-gray-700">
-                New Address (Optional Save)
-              </h3>
-              <FormInput name="name" placeholder="Contact Name" formik={formik} />
+              <FormInput name="name" placeholder="Name" formik={formik} />
               <FormInput name="city" placeholder="City" formik={formik} />
-              <FormInput
-                name="details"
-                placeholder="Detailed Address (Street, Building, Floor/Apt)"
-                formik={formik}
-              />
-              <FormInput
-                name="phone"
-                placeholder="Phone Number (01xxxxxxxxx)"
-                formik={formik}
-              />
+              <FormInput name="details" placeholder="Address" formik={formik} />
+              <FormInput name="phone" placeholder="Phone" formik={formik} />
+
               <button
                 type="submit"
-                disabled={formik.isSubmitting || addressLoading}
-                className="bg-gray-800 text-white px-4 py-2 rounded-lg w-full flex items-center justify-center font-semibold hover:bg-gray-700 disabled:opacity-60 transition shadow-md"
+                disabled={formik.isSubmitting}
+                className="w-full bg-gray-800 text-white py-2 rounded-lg"
               >
-                {formik.isSubmitting || addressLoading ? (
-                  <ClipLoader color="white" size={20} className=" mr-2" />
-                ) : (
-                  "Save Address"
-                )}
+                Save Address
               </button>
             </form>
 
-            {/* Payment Method Section */}
-            <div className="mt-6 border-t pt-4">
-              <h2 className="font-bold text-xl mb-3 text-gray-800">
-                Payment Method
-              </h2>
-              <div className="flex flex-col gap-2">
-                <PaymentOption
-                  value="cash"
-                  label="Cash on Delivery (COD)"
-                  currentMethod={paymentMethod}
-                  updateMethod={setPaymentMethod}
-                />
-                <PaymentOption
-                  value="card"
-                  label="Online Payment"
-                  currentMethod={paymentMethod}
-                  updateMethod={setPaymentMethod}
-                />
-                {paymentMethod === "card" && <CardInputs />}
-              </div>
+            <div className="mt-6">
+              <h3 className="font-bold mb-2">Payment Method</h3>
+              <PaymentOption
+                value="cash"
+                label="Cash on Delivery"
+                currentMethod={paymentMethod}
+                updateMethod={setPaymentMethod}
+              />
+              <PaymentOption
+                value="card"
+                label="Online Payment (Stripe)"
+                currentMethod={paymentMethod}
+                updateMethod={setPaymentMethod}
+              />
+              {paymentMethod === "card" && <CardInputs />}
             </div>
+
             <button
               onClick={handleOrderSubmission}
               disabled={isOrderDisabled}
-              className="bg-purple-600 text-white px-6 py-3 mt-8 rounded-xl w-full flex items-center justify-center font-bold text-lg hover:bg-purple-700 transition disabled:opacity-50 shadow-lg shadow-purple-200"
+              className="mt-6 w-full bg-purple-600 text-white py-3 rounded-xl font-bold"
             >
               {isOrderLoading ? (
-                <ClipLoader color="white" size={20} className="animate-spin mr-2" />
+                <ClipLoader size={20} color="white" />
               ) : (
                 "Complete Order"
               )}

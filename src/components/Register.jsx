@@ -161,7 +161,8 @@ export default function Register() {
                                         className="text-sm text-blue-600 hover:text-blue-800 transition font-medium"
                                         onClick={(e) => {
                                             e.preventDefault();
-                                            toast('Forgot Password functionality TBD!');
+                                            navigate("/forgotPassword");
+
                                         }}
                                     >
                                         Forgot Password?

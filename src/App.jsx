@@ -13,6 +13,11 @@ import WishList from "./components/WishList.jsx";
 import CheckOutPage from './components/CheckOut/CheckOutPage.jsx';
 import CartSidebar from "./components/CartSidebar.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import PaymentSuccess from "./components/CheckOut/PaymentSuccess.jsx";
+import ForgotPassword from "./components/forgotPassword.jsx";
+import VerifyResetCode from "./components/verifyResetCode.jsx";
+import ResetPassword from "./components/resetPassword.jsx";
 
 function App() {
   return (
@@ -40,10 +45,15 @@ function App() {
         <Route path="/categories/:categoryId" element={<Subcategories />} />
         <Route path="/product/:productId" element={<ProductDetails />} />
         <Route path="/not-found" element={<NotFound />} />
-        <Route path="/cart" element={<Cart />} />
+        <Route path="/cart" element={<ProtectedRoute> <Cart /> </ProtectedRoute>} />
         <Route path="/register" element={<Register />} />
-        <Route path="/wishlist" element={<WishList />} />
+        <Route path="/wishlist" element={<ProtectedRoute>< WishList /> </ProtectedRoute>} />
         <Route path="/checkout" element={<CheckOutPage />} />
+        <Route path="/paymentSuccess" element={<PaymentSuccess />} />
+        <Route path="/forgotPassword" element={<ForgotPassword />} />
+        <Route path="/verifyResetCode" element={<VerifyResetCode />} />
+        <Route path="/resetPassword" element={<ResetPassword />} />
+
       </Routes>
       <Footer />
     </Router>

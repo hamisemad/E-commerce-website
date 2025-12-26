@@ -9,9 +9,6 @@ import { useCart } from "./Context/CartContext";
 import { useWishList } from "./Context/WishListContext";
 import { ClipLoader } from "react-spinners";
 import toast from "react-hot-toast";
-
-
-
 import { Swiper, SwiperSlide } from "swiper/react";
 import { FreeMode, Navigation, Thumbs } from "swiper/modules";
 import "swiper/css";
@@ -33,7 +30,7 @@ export default function ProductDetails() {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isBuyingNow, setIsBuyingNow] = useState(false);
 
-  const { addProductToCart } = useCart();
+  const { addProductToCart, clearCart, setIsBuyNowFlow } = useCart();
   const { wishList, addProductToWishList, deleteWishListProduct } = useWishList();
 
   useEffect(() => {
@@ -119,27 +116,25 @@ export default function ProductDetails() {
   };
 
 
-  const handleBuyNowOrder = () => {
-    if (!product?._id || isBuyingNow) return;
-    const token = localStorage.getItem("userToken");
+  const handleBuyNowOrder = async () => {
+    if (!product?._id) return;
 
+    const token = localStorage.getItem("userToken");
     if (!token) {
       toast.error("You need to login first");
       return;
     }
-    setIsBuyingNow(true);
-    setTimeout(() => {
-      navigate("/checkout", {
-        state: {
-          productId: product._id,
-        },
-      });
-    }, 500);
+
+    try {
+      setIsBuyNowFlow(true);
+
+      await addProductToCart(product._id, { silent: true });
+
+      navigate("/checkout");
+    } catch {
+      setIsBuyNowFlow(false);
+    }
   };
-
-
-
-
 
   if (loading) {
     return (

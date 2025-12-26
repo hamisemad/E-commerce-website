@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 
+
 const API_URL = "https://ecommerce.routemisr.com/api/v1";
 
 const AuthContext = createContext({
@@ -55,7 +56,7 @@ export const AuthProvider = ({ children }) => {
             if (userToken) {
                 setToken(userToken);
                 localStorage.setItem("userToken", userToken);
-                toast.success("Login successful!");
+                toast.success("Logged in successfully!");
 
                 const decodedUser = data?.user || data?.decoded;
                 if (decodedUser) setUser(decodedUser);
@@ -75,8 +76,84 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         localStorage.removeItem("userToken");
         toast("Logged out");
+
     }
 
+    const forgotPassword = async (email) => {
+        try {
+            setLoading(true);
+            const { data } = await axios.post(`${API_URL}/auth/forgotPasswords`, { email });
+            return data;
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to send reset code");
+            throw err;
+
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const verifyResetCode = async (resetCode) => {
+        try {
+            setLoading(true);
+            const { data } = await axios.post(`${API_URL}/auth/verifyResetCode`, { resetCode });
+            return data;
+
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Invalid reset code");
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const resetPassword = async ({ email, newPassword }) => {
+        setLoading(true);
+        try {
+            const { data } = await axios.put(
+                "https://ecommerce.routemisr.com/api/v1/auth/resetPassword",
+                {
+                    email,
+                    newPassword,
+                }
+            );
+
+            toast.success("Password reset successfully");
+            return data;
+        } catch (error) {
+            toast.error(
+                error?.response?.data?.message || "Failed to reset password"
+            );
+            throw error;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    const changePassword = async (passwordData) => {
+        try {
+            setLoading(true);
+            const { data } = await axios.post(`${API_URL}/auth/changePassword`, passwordData,
+                {
+                    headers: {
+                        token,
+                    },
+                }
+            );
+
+            if (data?.token) {
+                setToken(data.token);
+                localStorage.setItem("userToken", data.token);
+            }
+            return data;
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Password update failed");
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }
 
     const verifyToken = async () => {
         const token = localStorage.getItem("userToken");
@@ -98,9 +175,6 @@ export const AuthProvider = ({ children }) => {
 
     }, [token]);
 
-
-
-
     return (
         <AuthContext.Provider
             value={{
@@ -111,6 +185,10 @@ export const AuthProvider = ({ children }) => {
                 login,
                 logout,
                 verifyToken,
+                forgotPassword,
+                verifyResetCode,
+                resetPassword,
+                changePassword
             }}
 
         >
